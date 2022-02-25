@@ -1,21 +1,17 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 class Poker {
-    constructor(param) {
-        this.param = param;
-        // 花色 - 大小鬼无花色
-        this.type = this.param.type;
-        // 选中状态
-        this.selected = this.param.selected;
-        // 扑克牌对应的文字
-        this.text = this.param.text;
-        // 扑克牌对应的数字
-        this.number = this.param.number;
+    // 花色 - 大小鬼无花色
+    public type = this.param.type;
+    // 选中状态
+    public selected = this.param.selected;
+    // 扑克牌对应的文字
+    public text = this.param.text;
+    // 扑克牌对应的数字
+    public number = this.param.number;
+    constructor(public param: { text?: string; number?: number; type?: number; selected?: boolean }) {
         if (param.text) {
             this.text = param.text;
             this.number = Poker.textToNumber(param.text);
-        }
-        else {
+        } else {
             this.number = param.number;
             this.text = Poker.numberToText(param.number);
         }
@@ -24,7 +20,7 @@ class Poker {
      * 扑克牌文字转数字
      * @param text
      */
-    static textToNumber(text) {
+    static textToNumber(text: string): number {
         switch (text) {
             case '3':
                 return 3;
@@ -75,7 +71,7 @@ class Poker {
      * 扑克牌数字转文字
      * @param number
      */
-    static numberToText(number) {
+    static numberToText(number: number): string {
         switch (number) {
             case 3:
                 return '3';
@@ -109,12 +105,14 @@ class Poker {
                 return 'X';
         }
     }
+
     /**
      * 扑克牌排序
      */
     static sortFunction(a, b) {
         return a.number - b.number;
     }
+
     static getObjByPokerList(pokerList) {
         if (pokerList[0] === 'pass') {
             return {
@@ -123,6 +121,7 @@ class Poker {
             };
         }
         pokerList.sort(Poker.sortFunction);
+
         let lastPoker = pokerList[0];
         let curList = [lastPoker];
         let lists = [];
@@ -130,13 +129,13 @@ class Poker {
             if (pokerList[i].number !== lastPoker.number) {
                 lists.push(curList);
                 curList = [pokerList[i]];
-            }
-            else {
+            } else {
                 curList.push(pokerList[i]);
             }
             lastPoker = pokerList[i];
         }
         lists.push(curList);
+
         let Count1List = [];
         let Count2List = [];
         let Count3List = [];
@@ -144,41 +143,36 @@ class Poker {
         for (let i = 0; i < lists.length; i++) {
             if (lists[i].length === 3) {
                 Count3List.push(lists[i]);
-            }
-            else if (lists[i].length === 2) {
+            } else if (lists[i].length === 2) {
                 Count2List.push(lists[i]);
-            }
-            else if (lists[i].length === 1) {
+            } else if (lists[i].length === 1) {
                 Count1List.push(lists[i]);
-            }
-            else if (lists[i].length === 4) {
+            } else if (lists[i].length === 4) {
                 Count4List.push(lists[i]);
             }
         }
+
         if (pokerList.length === 1) {
             return {
                 type: 'one',
                 poker: pokerList,
                 one: pokerList,
             };
-        }
-        else if (pokerList.length === 2) {
+        } else if (pokerList.length === 2) {
             if (Count2List.length === 1) {
                 return {
                     type: 'two',
                     poker: pokerList,
                     two: pokerList,
                 };
-            }
-            else if (pokerList[0].number === 16 && pokerList[1].number === 17) {
+            } else if (pokerList[0].number === 16 && pokerList[1].number === 17) {
                 return {
                     type: 'sx',
                     poker: pokerList,
                     sx: pokerList,
                 };
             }
-        }
-        else if (pokerList.length === 3) {
+        } else if (pokerList.length === 3) {
             if (Count3List.length === 1) {
                 return {
                     type: 'three',
@@ -186,8 +180,7 @@ class Poker {
                     three: pokerList,
                 };
             }
-        }
-        else if (pokerList.length === 4) {
+        } else if (pokerList.length === 4) {
             if (Count3List.length === 1) {
                 return {
                     type: 'threeWithOne',
@@ -195,16 +188,14 @@ class Poker {
                     three: Count3List[0],
                     one: Count1List[0],
                 };
-            }
-            else if (Count4List.length === 1) {
+            } else if (Count4List.length === 1) {
                 return {
                     type: 'four',
                     poker: pokerList,
                     four: pokerList,
                 };
             }
-        }
-        else if (pokerList.length === 5) {
+        } else if (pokerList.length === 5) {
             if (Count3List.length === 1 && Count2List.length === 1) {
                 return {
                     type: 'threeWithTwo',
@@ -213,8 +204,7 @@ class Poker {
                     two: Count2List[0],
                 };
             }
-        }
-        else if (pokerList.length === 6) {
+        } else if (pokerList.length === 6) {
             if (Count4List.length === 1 && Count1List.length === 2) {
                 return {
                     type: 'fourWithOne',
@@ -222,8 +212,7 @@ class Poker {
                     four: Count4List[0],
                 };
             }
-        }
-        else if (pokerList.length === 8) {
+        } else if (pokerList.length === 8) {
             if (Count4List.length === 1 && Count2List.length === 2) {
                 return {
                     type: 'fourWithTwo',
@@ -232,9 +221,12 @@ class Poker {
                 };
             }
         }
-        if (Count3List.length >= 2 &&
+
+        if (
+            Count3List.length >= 2 &&
             Count3List[Count3List.length - 1][0].number <= 14 &&
-            Count3List[0][0].number + Count3List.length - 1 === Count3List[Count3List.length - 1][0].number) {
+            Count3List[0][0].number + Count3List.length - 1 === Count3List[Count3List.length - 1][0].number
+        ) {
             //threeWithOneList
             if (pokerList.length - 3 * Count3List.length === Count3List.length) {
                 return {
@@ -246,8 +238,7 @@ class Poker {
                         };
                     }),
                 };
-            }
-            else {
+            } else {
                 //threeWithTwoList
                 if (Count2List.length === Count3List.length) {
                     return {
@@ -262,11 +253,14 @@ class Poker {
                 }
             }
         }
+
         //判断oneList
-        if (pokerList.length >= 5 &&
+        if (
+            pokerList.length >= 5 &&
             pokerList[pokerList.length - 1].number <= 14 &&
             Count1List.length === pokerList.length &&
-            pokerList[0].number + pokerList.length - 1 === pokerList[pokerList.length - 1].number) {
+            pokerList[0].number + pokerList.length - 1 === pokerList[pokerList.length - 1].number
+        ) {
             return {
                 type: 'oneList',
                 poker: pokerList,
@@ -277,12 +271,15 @@ class Poker {
                 }),
             };
         }
+
         //判断twoList
-        if (pokerList.length >= 6 &&
+        if (
+            pokerList.length >= 6 &&
             pokerList[pokerList.length - 1].number <= 14 &&
             pokerList.length % 2 === 0 &&
             Count2List.length === pokerList.length / 2 &&
-            pokerList[0].number + pokerList.length / 2 - 1 === pokerList[pokerList.length - 1].number) {
+            pokerList[0].number + pokerList.length / 2 - 1 === pokerList[pokerList.length - 1].number
+        ) {
             return {
                 type: 'twoList',
                 poker: pokerList,
@@ -293,12 +290,15 @@ class Poker {
                 }),
             };
         }
+
         //判断threeList
-        if (pokerList.length >= 6 &&
+        if (
+            pokerList.length >= 6 &&
             pokerList[pokerList.length - 1].number <= 14 &&
             pokerList.length % 3 === 0 &&
             Count3List.length === pokerList.length / 3 &&
-            pokerList[0].number + pokerList.length / 3 - 1 === pokerList[pokerList.length - 1].number) {
+            pokerList[0].number + pokerList.length / 3 - 1 === pokerList[pokerList.length - 1].number
+        ) {
             return {
                 type: 'threeList',
                 poker: pokerList,
@@ -309,8 +309,10 @@ class Poker {
                 }),
             };
         }
+
         return false;
     }
+
     static pokerListToString(pokerList) {
         let result = '';
         for (let i = 0; i < pokerList.length; i++) {
@@ -319,8 +321,10 @@ class Poker {
         }
         return result;
     }
+
     toString() {
         return this.text;
     }
 }
-exports.default = Poker;
+
+export default Poker;

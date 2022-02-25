@@ -201,6 +201,11 @@ export default {
   mounted() {
     this.data = this.game.playerList[1].name;
     window.game = this.game;
+    window.player = () => [
+        { name: this.game.playerList[0].name, pokerList: JSON.parse(JSON.stringify(this.game.playerList[0].pokerList)) },
+        { name: this.game.playerList[1].name, pokerList: JSON.parse(JSON.stringify(this.game.playerList[1].pokerList)) },
+        { name: this.game.playerList[2].name, pokerList: JSON.parse(JSON.stringify(this.game.playerList[2].pokerList)) },
+    ];
   },
   methods:{
 

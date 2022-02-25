@@ -1,42 +1,42 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const Poker_1 = require("./Poker");
-const AI_1 = require("./AI");
+import Poker from './Poker';
+import AI from './AI';
+import type Game from './Game';
+
 class Player {
-    constructor(param) {
-        this.param = param;
-        // 金币
-        this.money = 1000;
-        // 准备状态
-        this.ready = false;
-        // 叫分 - 可忽略
-        this.jiaoFen = -1;
-        // 扑克牌列表
-        this.pokerList = [];
-        this.last = null;
-        this.next = null;
-        this.classifyObj = null;
-        this.lastSendObj = null;
-        // 名称
-        this.name = this.param.name || 'noName' + Math.random();
-        // 农民或者地主
-        this.type = this.param.type || 'nongmin';
-        // 是否是机器人
-        this.isRobot = this.param.isRobot;
-        this.game = this.param.game;
-        this.ai = new AI_1.default({
-            player: this,
-            game: this.game,
-        });
+    // 金币
+    money = 1000;
+    // 准备状态
+    ready = false;
+    // 叫分 - 可忽略
+    public jiaoFen = -1;
+    // 扑克牌列表
+    public pokerList: Poker[] = [];
+    last = null;
+    next = null;
+    classifyObj = null;
+    lastSendObj = null;
+    // 名称
+    public name = this.param.name || 'noName' + Math.random();
+    // 农民或者地主
+    public type = this.param.type || 'nongmin';
+    // 是否是机器人
+    public isRobot = this.param.isRobot;
+    public game = this.param.game;
+    public ai = new AI({
+        player: this,
+        game: this.game,
+    });
+    constructor(public param: { name?: string; isRobot: boolean; game: Game; type?: string }) {
         if (this.isRobot) {
             this.loopRobot();
         }
     }
+
     /**
      * 开始叫分
      * @param fen 分值
      */
-    setJiaoFen(fen) {
+    setJiaoFen(fen: number) {
         this.jiaoFen = fen;
         this.game.someOneJiaoFen();
     }
@@ -45,11 +45,13 @@ class Player {
      */
     loopRobot() {
         let that = this;
+
         let timeWait = 1000;
         if (that.game.testModel) {
             timeWait = 5000;
             // timeWait = 0;
         }
+
         setTimeout(function () {
             if (that.isRobot) {
                 if (!that.ready) {
@@ -60,6 +62,7 @@ class Player {
                 let fen = that.ai.getJiaoFen();
                 that.setJiaoFen(fen);
             }
+
             that.loopRobot();
         }, timeWait);
     }
@@ -86,15 +89,19 @@ class Player {
         this.classifyObj = this.ai.getClassifyObj(this.pokerList);
         // console.log(this.classifyObj);
     }
+
     addPoker(poker) {
         this.pokerList.push(poker);
     }
+
     sortPoker() {
         this.pokerList.sort(this.sortFunction);
     }
+
     sortFunction(a, b) {
         return a.number - b.number;
     }
+
     getLastObj() {
         let lastObj = this.last.lastSendObj;
         if (!lastObj || lastObj.type === 'pass') {
@@ -105,29 +112,35 @@ class Player {
         }
         return lastObj;
     }
+
     playByAI() {
         let that = this;
+
         that.getClassifyObj();
+
         let timeWait = 1000;
         if (that.game.testModel) {
             timeWait = 5000;
             // timeWait = 0;
         }
+
         setTimeout(function () {
             let lastObj = that.getLastObj();
             if (lastObj) {
                 that.ai.playByObj(lastObj);
-            }
-            else {
+            } else {
                 that.ai.playByAllType();
             }
         }, timeWait);
     }
+
     sendPoker(obj) {
         obj.player = this;
         this.lastSendObj = obj;
+
         this.game.someOneSendPoker(obj);
     }
+
     deleteFromPokerListAndSendByObj(obj) {
         let tempList = [];
         if (obj.type === 'pass') {
@@ -139,8 +152,7 @@ class Player {
             let poker = this.getAndDeleteOnePokerByNumber(pokerList[i].number);
             if (poker) {
                 tempList.push(poker);
-            }
-            else {
+            } else {
                 this.listBackToPokerList(tempList);
                 return false;
             }
@@ -148,6 +160,7 @@ class Player {
         this.sendPoker(obj);
         return true;
     }
+
     getListByList(list) {
         let tempList = [];
         if (list[0] === 'pass') {
@@ -158,14 +171,14 @@ class Player {
             let poker = this.getAndDeleteOnePokerByNumber(po.number);
             if (poker) {
                 tempList.push(poker);
-            }
-            else {
+            } else {
                 this.listBackToPokerList(tempList);
                 return false;
             }
         }
         return tempList;
     }
+
     getListByString(str) {
         let tempList = [];
         if (str === 'pass') {
@@ -173,18 +186,18 @@ class Player {
         }
         for (let i = 0; i < str.length; i++) {
             let text = str[i];
-            let number = Poker_1.default.textToNumber(text);
+            let number = Poker.textToNumber(text);
             let poker = this.getAndDeleteOnePokerByNumber(number);
             if (poker) {
                 tempList.push(poker);
-            }
-            else {
+            } else {
                 this.listBackToPokerList(tempList);
                 return false;
             }
         }
         return tempList;
     }
+
     listBackToPokerList(list) {
         while (list.length > 0) {
             let poker = list.splice(0, 1)[0];
@@ -192,9 +205,10 @@ class Player {
         }
         this.sortPoker();
     }
+
     handleList(list) {
         if (list) {
-            let obj = Poker_1.default.getObjByPokerList(list);
+            let obj = Poker.getObjByPokerList(list);
             if (obj) {
                 if (obj.type === 'pass') {
                     this.sendPoker(obj);
@@ -207,105 +221,95 @@ class Player {
                         if (comp) {
                             this.sendPoker(obj);
                             return true;
-                        }
-                        else {
+                        } else {
                             this.listBackToPokerList(list);
-                            alert('必须大于 ' + Poker_1.default.pokerListToString(lastObj.poker));
+                            alert('必须大于 ' + Poker.pokerListToString(lastObj.poker));
                             return false;
                         }
-                    }
-                    else {
+                    } else {
                         if (obj.type === 'sx') {
                             this.sendPoker(obj);
                             return true;
-                        }
-                        else if (obj.type === 'four' && lastObj.type !== 'sx') {
+                        } else if (obj.type === 'four' && lastObj.type !== 'sx') {
                             this.sendPoker(obj);
                             return true;
                         }
+
                         this.listBackToPokerList(list);
                         alert('牌型不是 ' + lastObj.type + '!');
                         return false;
                     }
-                }
-                else {
+                } else {
                     this.sendPoker(obj);
                     return true;
                 }
-            }
-            else {
+            } else {
                 this.listBackToPokerList(list);
                 alert('牌型错误!');
                 return false;
             }
-        }
-        else {
+        } else {
             alert('你没有此牌!');
             return false;
         }
     }
+
     playByPokerList(pokerList) {
         if (this.game.currentPlayer !== this) {
             alert('请等待 ' + this.game.currentPlayer.name + ' 出牌');
             return false;
         }
+
         let list = this.getListByList(pokerList);
         return this.handleList(list);
     }
+
     playByString(str) {
         if (this.game.currentPlayer !== this) {
             alert('请等待 ' + this.game.currentPlayer.name + ' 出牌');
             return false;
         }
+
         let list = this.getListByString(str);
         return this.handleList(list);
     }
+
     compareTwoObj(obj1, obj2) {
         if (obj1.list && obj2.list) {
             if (obj1.list.length !== obj2.list.length) {
                 return false;
             }
         }
+
         if (obj1.type === 'one') {
             return obj1.one[0].number > obj2.one[0].number;
-        }
-        else if (obj1.type === 'two') {
+        } else if (obj1.type === 'two') {
             return obj1.two[0].number > obj2.two[0].number;
-        }
-        else if (obj1.type === 'three') {
+        } else if (obj1.type === 'three') {
             return obj1.three[0].number > obj2.three[0].number;
-        }
-        else if (obj1.type === 'threeWithOne') {
+        } else if (obj1.type === 'threeWithOne') {
             return obj1.three[0].number > obj2.three[0].number;
-        }
-        else if (obj1.type === 'threeWithTwo') {
+        } else if (obj1.type === 'threeWithTwo') {
             return obj1.three[0].number > obj2.three[0].number;
-        }
-        else if (obj1.type === 'fourWithOne') {
+        } else if (obj1.type === 'fourWithOne') {
             return obj1.four[0].number > obj2.four[0].number;
-        }
-        else if (obj1.type === 'fourWithTwo') {
+        } else if (obj1.type === 'fourWithTwo') {
             return obj1.four[0].number > obj2.four[0].number;
-        }
-        else if (obj1.type === 'threeWithOneList') {
+        } else if (obj1.type === 'threeWithOneList') {
             return obj1.list[0].three[0].number > obj2.list[0].three[0].number;
-        }
-        else if (obj1.type === 'threeWithTwoList') {
+        } else if (obj1.type === 'threeWithTwoList') {
             return obj1.list[0].three[0].number > obj2.list[0].three[0].number;
-        }
-        else if (obj1.type === 'oneList') {
+        } else if (obj1.type === 'oneList') {
             return obj1.list[0].one[0].number > obj2.list[0].one[0].number;
-        }
-        else if (obj1.type === 'twoList') {
+        } else if (obj1.type === 'twoList') {
             return obj1.list[0].two[0].number > obj2.list[0].two[0].number;
-        }
-        else if (obj1.type === 'threeList') {
+        } else if (obj1.type === 'threeList') {
             return obj1.list[0].three[0].number > obj2.list[0].three[0].number;
-        }
-        else if (obj1.type === 'four') {
+        } else if (obj1.type === 'four') {
             return obj1.four[0].number > obj2.four[0].number;
         }
     }
+
     getAndDeleteOnePokerByNumber(number) {
         for (let i = 0; i < this.pokerList.length; i++) {
             if (this.pokerList[i].number === number) {
@@ -314,16 +318,19 @@ class Player {
         }
         return false;
     }
+
     pokerListToString() {
-        let result = Poker_1.default.pokerListToString(this.pokerList);
+        let result = Poker.pokerListToString(this.pokerList);
         return result;
     }
+
     lastSendObjToString() {
         if (!this.lastSendObj) {
             return '';
         }
-        let result = Poker_1.default.pokerListToString(this.lastSendObj.poker);
+        let result = Poker.pokerListToString(this.lastSendObj.poker);
         return result;
     }
 }
-exports.default = Player;
+
+export default Player;
